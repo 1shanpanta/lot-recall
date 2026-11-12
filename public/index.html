@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0c12">
+<title>Lot Recall</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23003087'/><rect x='10' y='4.5' width='12' height='4' rx='1.5' fill='%23ffc439'/><path d='M9 10h14a2 2 0 0 1 2 2v13a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V12a2 2 0 0 1 2-2z' fill='%23ffc439'/><path d='M11.5 19.2l3.2 3.1 6-6.3' fill='none' stroke='%23003087' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@36.3.0/dist/ag-grid-community.min.js" integrity="sha384-r0nb7ZF8ZNA118r2mrXGSha1zo2m59NrKxYNq7HPj+uZ0rjr+U1csR+ywLx0nNve" crossorigin="anonymous" defer></script>
+<style>
+  :root {
+    --bg: #0a0c12; --panel: #10141d; --field: #121722; --line: #ffffff1a; --text: #eef1f6; --dim: #a3adbf;
+    --blue: #0070e0; --blue-deep: #005fc0; --sky: #6db3ff; --yellow: #ffc439;
+    --refund: #6ee7a8; --pull: #ffc439; --draft: #8cc4ff; --refused: #ff9a90; --done: #6ee7a8;
+    --sans: "Onest", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { margin: 0; min-height: 100vh; color: var(--text); background: var(--bg) radial-gradient(880px 420px at 50% -160px, #0070e04a, transparent 72%) no-repeat; font: 15px/1.55 var(--sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+  button, input, textarea { font: inherit; }
+  button { cursor: pointer; }
+  :is(button, a, summary, input, textarea, label.file):focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+  h1, h2, h3, p { margin: 0; }
+  [hidden] { display: none !important; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; padding: 16px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 17px; letter-spacing: -0.015em; }
+  .mode { display: flex; align-items: center; gap: 8px; color: var(--dim); font: 12px/1.4 var(--mono); }
+  .mode::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
+  .mode.sandbox::before { background: var(--sky); }
+
+  .hero { max-width: 760px; margin: 0 auto; padding: 28px 0 0; }
+  h1 { margin-bottom: 10px; font: 600 clamp(28px, 4.4vw, 42px)/1.12 var(--sans); letter-spacing: -0.034em; text-align: center; text-wrap: balance; }
+  .lede { max-width: 620px; margin: 0 auto 24px; color: var(--dim); text-align: center; text-wrap: pretty; }
+
+  form { padding: 18px; background: var(--field); border: 1px solid #ffffff24; border-radius: 16px; box-shadow: 0 12px 40px -16px #000; }
+  form > label { display: block; margin-bottom: 6px; color: var(--dim); font-size: 13.5px; font-weight: 500; }
+  textarea { display: block; width: 100%; min-height: 96px; padding: 12px 14px; border: 1px solid #ffffff2e; border-radius: 10px; background: #0b0f17; color: var(--text); font-size: 17px; line-height: 1.5; resize: vertical; transition: border-color .15s; }
+  textarea:focus { border-color: var(--sky); outline: none; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+  .file { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid #ffffff4d; border-radius: 10px; color: var(--text); font-weight: 500; cursor: pointer; transition: border-color .15s; }
+  .file:hover { border-color: #fff; }
+  .file:focus-within { outline: 2px solid var(--sky); outline-offset: 2px; }
+  .file input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .file svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .go { min-height: 48px; padding: 0 22px; border: 1px solid transparent; border-radius: 10px; background: var(--blue); color: #fff; font-weight: 600; transition: background .15s; }
+  .go:hover { background: var(--blue-deep); }
+  .go:disabled { background: #283247; color: #c9d0dc; cursor: not-allowed; }
+  .go.alt { background: transparent; border-color: #ffffff4d; color: var(--text); }
+  .go.alt:hover { border-color: #fff; }
+  .go.alt:disabled { border-color: #ffffff26; color: var(--dim); }
+  .transcript { margin-top: 10px; color: var(--dim); font-size: 14px; }
+  .transcript b { color: var(--text); font-weight: 500; }
+  .err { margin-top: 12px; padding: 10px 14px; border: 1px solid #ff6b6b55; border-radius: 10px; background: #1d1014; color: #ffb4ad; font-size: 14.5px; }
+  .honest { margin-top: 14px; color: var(--dim); font-size: 13.5px; text-align: center; text-wrap: pretty; }
+
+  .res { margin-top: 36px; }
+  .resbar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 14px; }
+  .resbar h2 { font: 600 clamp(21px, 2.6vw, 26px)/1.25 var(--sans); letter-spacing: -0.024em; }
+  .resbar h2:focus { outline: none; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .fact { padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .fact span { display: block; color: var(--dim); font-size: 13px; }
+  .fact strong { font-weight: 600; font-size: 15.5px; overflow-wrap: anywhere; }
+  .sum { margin-bottom: 12px; font-size: 16px; }
+  .sum b { font-weight: 650; }
+
+  .gridbox { width: 100%; overflow-x: auto; border-radius: 14px; }
+  #grid { min-width: 980px; }
+  #grid .ag-grid-scrolling-rows { min-height: 0 !important; }
+  #grid .mono { font-family: var(--mono); font-size: 13px; }
+  #grid a { display: inline-flex; align-items: center; min-width: 48px; min-height: 44px; padding: 0 8px; margin-left: -8px; border-radius: 8px; color: var(--sky); font-weight: 500; text-underline-offset: 3px; }
+  #grid a:hover { color: #fff; }
+  #grid mark { padding: 1px 4px; border-radius: 4px; background: #ffc43933; box-shadow: inset 0 -2px 0 var(--yellow); color: #fff; }
+  #grid .refused mark { background: #ff6b6b26; box-shadow: inset 0 -2px 0 var(--refused); }
+  .act { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .act::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: currentColor; }
+  .k-refund_line { color: var(--refund); } .k-pull_line { color: var(--pull); } .k-edit_draft_line { color: var(--draft); } .k-refused, .k-skipped, .k-failed { color: var(--refused); }
+  .ag-row.r-refund_line { box-shadow: inset 3px 0 0 var(--refund); }
+  .ag-row.r-pull_line { box-shadow: inset 3px 0 0 var(--pull); }
+  .ag-row.r-edit_draft_line { box-shadow: inset 3px 0 0 var(--draft); }
+  .ag-row.r-refused, .ag-row.r-skipped { box-shadow: inset 3px 0 0 var(--refused); background: #ff6b6b0d; }
+  #grid .ag-cell { display: flex; align-items: center; }
+  #grid .ag-cell.ag-right-aligned-cell { justify-content: flex-end; }
+  #grid .why { white-space: normal; line-height: 1.35; }
+
+  .confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: 16px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+  .check { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; font-weight: 500; }
+  .check input { width: 22px; height: 22px; margin: 0; accent-color: var(--blue); }
+  .confirm p { flex: 1 1 260px; color: var(--dim); font-size: 14px; }
+  .again { margin-top: 12px; padding: 12px 16px; border-radius: 12px; border: 1px solid #6ee7a855; background: #0f8a5226; }
+
+  .notices { margin-top: 28px; }
+  .notices h3, .ledger h3 { margin-bottom: 12px; font: 600 18px/1.3 var(--sans); letter-spacing: -0.02em; }
+  .notices ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .notices li { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  .notices .to { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; color: var(--dim); font: 12.5px/1.4 var(--mono); }
+  .notices p { font-size: 14.5px; }
+
+  details.log { margin-top: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; color: #d3dae6; font: 12px/1.6 var(--mono); }
+  details.log summary { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 16px; list-style: none; cursor: pointer; color: var(--text); border-radius: 13px; }
+  details.log summary::-webkit-details-marker { display: none; }
+  details.log .n { margin-left: auto; color: var(--dim); }
+  details.log ol { list-style: none; margin: 0; padding: 10px 16px 14px; border-top: 1px solid var(--line); max-height: 420px; overflow: auto; }
+  details.log li { display: grid; grid-template-columns: 92px 1fr; gap: 0 12px; padding: 3px 0; }
+  details.log .e { color: var(--sky); }
+  details.log .d { grid-column: 2; overflow-wrap: anywhere; }
+
+  .fade { animation: fade .18s ease-out both; }
+  @keyframes fade { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .fade { animation: none; } * { transition: none !important; } }
+  @media (max-width: 620px) {
+    .wrap { padding: 0 16px 64px; }
+    .row { flex-direction: column; align-items: stretch; }
+    .file, .go { justify-content: center; width: 100%; }
+    .confirm .go { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#003087"/><rect x="10" y="4.5" width="12" height="4" rx="1.5" fill="#ffc439"/><path d="M9 10h14a2 2 0 0 1 2 2v13a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V12a2 2 0 0 1 2-2z" fill="#ffc439"/><path d="M11.5 19.2l3.2 3.1 6-6.3" fill="none" stroke="#003087" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Lot Recall
+    </div>
+    <div class="mode" id="mode">Connecting</div>
+  </header>
+
+  <section class="hero">
+    <h1>Recall one bad batch from your PayPal invoices</h1>
+    <p class="lede">Describe the batch in one sentence. The app reads your invoices, finds the lines, and shows every refund and edit before anything changes.</p>
+    <form id="form" novalidate>
+      <label for="sentence">Recall sentence</label>
+      <textarea id="sentence" name="sentence" rows="3" maxlength="400" spellcheck="true"></textarea>
+      <div class="row">
+        <label class="file" id="filelabel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span>Upload a voice note</span>
+          <input type="file" id="audio" accept="audio/*" aria-label="Upload a voice note">
+        </label>
+        <button class="go" id="preview" type="submit">Show the dry run</button>
+      </div>
+      <p class="transcript" id="transcript" hidden></p>
+      <p class="err" id="err" role="alert" hidden></p>
+    </form>
+    <p class="honest" id="honest">Sandbox demo. Payments and refunds are recorded in PayPal as external payments, so no money moves. Buyer notices are previews and are not emailed.</p>
+  </section>
+
+  <section class="res" id="res" hidden>
+    <div class="resbar"><h2 id="title" tabindex="-1"></h2></div>
+    <div class="facts" id="facts"></div>
+    <p class="sum" id="sum"></p>
+    <div class="gridbox"><div id="grid"></div></div>
+    <div class="confirm" id="confirm">
+      <label class="check"><input type="checkbox" id="reviewed"> I reviewed the dry run</label>
+      <p id="confirmnote">Confirm to run these actions on the PayPal sandbox invoices. Refused lines are not changed.</p>
+      <button class="go" id="run" type="button" disabled>Confirm and run</button>
+    </div>
+    <div class="confirm" id="after" hidden>
+      <p id="afternote">Each line runs one time. A second run checks the ledger and changes nothing.</p>
+      <button class="go alt" id="again" type="button">Run again</button>
+    </div>
+    <p class="again fade" id="againres" role="status" hidden></p>
+    <section class="notices" id="notices" hidden>
+      <h3 id="noticetitle">Notices to buyers (previews, not sent)</h3>
+      <ul id="noticelist"></ul>
+    </section>
+  </section>
+
+  <details class="log" id="log">
+    <summary>Server log <span class="n" id="logn">0 events</span></summary>
+    <ol id="loglist"></ol>
+  </details>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  for (const k of kids) n.append(k);
+  return n;
+};
+let current = null;
+let grid = null;
+const LABEL = { refund_line: "Refund", pull_line: "Pull line", edit_draft_line: "Edit draft", refused: "Refused", skipped: "Skipped" };
+const DONE = { refund_line: "Refunded", pull_line: "Removed", edit_draft_line: "Edited" };
+
+function showError(msg) {
+  const e = $("#err");
+  e.textContent = msg || "";
+  e.hidden = !msg;
+}
+
+function renderLog(lines) {
+  if (!lines) return;
+  $("#logn").textContent = `${lines.length} events`;
+  $("#loglist").replaceChildren(...lines.map((l) => el("li", {}, el("span", {}, l.at.slice(11, 19)), el("span", { class: "e" }, l.event), el("span", { class: "d" }, l.detail))));
+}
+
+function actionCell(p) {
+  const a = p.data;
+  if (a.result === "done" || a.result === "already done") {
+    const label = a.result === "already done" ? `${DONE[a.kind]} (already done)` : DONE[a.kind];
+    return el("span", { class: "act k-refund_line" }, label);
+  }
+  if (a.result === "failed") return el("span", { class: "act k-failed" }, "Failed");
+  return el("span", { class: `act k-${a.kind}` }, LABEL[a.kind]);
+}
+
+function itemCell(p) {
+  const a = p.data;
+  const span = el("span", { class: a.kind === "refused" || a.kind === "skipped" ? "refused" : "" });
+  span.append(el("mark", {}, a.item));
+  return span;
+}
+
+function initGrid() {
+  if (!window.agGrid) {
+    $("#grid").replaceWith(el("p", { class: "err", id: "grid" }, "The table did not load. Check the network connection and reload the page."));
+    return;
+  }
+  const theme = agGrid.themeQuartz.withPart(agGrid.colorSchemeDark).withParams({
+    backgroundColor: "#10141d", foregroundColor: "#eef1f6", headerBackgroundColor: "#121722", headerTextColor: "#a3adbf",
+    borderColor: "#ffffff1a", accentColor: "#6db3ff", rowHoverColor: "#ffffff0a",
+    fontFamily: '"Onest", system-ui, sans-serif', fontSize: 14, headerFontSize: 13, headerFontWeight: 500,
+    rowHeight: 64, headerHeight: 44, wrapperBorderRadius: 14, spacing: 8,
+  });
+  grid = agGrid.createGrid($("#grid"), {
+    theme,
+    rowData: [],
+    domLayout: "autoHeight",
+    getRowId: (p) => p.data.key,
+    rowClass: "",
+    getRowClass: (p) => `r-${p.data.kind}`,
+    animateRows: false,
+    suppressCellFocus: true,
+    suppressMovableColumns: true,
+    enableCellTextSelection: true,
+    defaultColDef: { sortable: true, resizable: false, suppressHeaderMenuButton: true, flex: 1, minWidth: 90 },
+    columnDefs: [
+      { headerName: "Invoice", field: "number", cellClass: "mono", maxWidth: 100,
+        cellRenderer: (p) => (p.data.result && p.data.payerUrl ? el("a", { href: p.data.payerUrl, target: "_blank", rel: "noopener", "aria-label": `Open invoice ${p.value} in the PayPal sandbox (new tab)` }, p.value) : p.value) },
+      { headerName: "Buyer", field: "buyer", minWidth: 150 },
+      { headerName: "Date", field: "date", cellClass: "mono", minWidth: 116, maxWidth: 124 },
+      { headerName: "Item", field: "item", flex: 1.8, minWidth: 200, cellRenderer: itemCell },
+      { headerName: "Action", field: "kind", minWidth: 150, cellRenderer: actionCell },
+      { headerName: "Amount", field: "amountCents", maxWidth: 110, type: "rightAligned", cellClass: "mono ag-right-aligned-cell", valueFormatter: (p) => (p.data.amountCents ? p.data.amount : "") },
+      { headerName: "Reason or PayPal id", field: "reason", flex: 2, minWidth: 240, cellClass: "why",
+        valueGetter: (p) => (p.data.result === "failed" ? p.data.error : p.data.paypalId && p.data.kind === "refund_line" ? `Refund ${p.data.paypalId}` : p.data.result ? `Line removed from ${p.data.invoiceId}` : p.data.reason) },
+    ],
+  });
+}
+
+function render(r, { focus = true } = {}) {
+  current = r;
+  $("#res").hidden = false;
+  const ran = r.actions.some((a) => a.result);
+  $("#title").textContent = ran ? "The recall ran in the PayPal sandbox" : "Dry run: nothing in PayPal has changed yet";
+  const w = r.window ? `${r.window.from} to ${r.window.to}` : "";
+  $("#facts").replaceChildren(
+    el("div", { class: "fact" }, el("span", {}, "Product"), el("strong", {}, r.product || "")),
+    el("div", { class: "fact" }, el("span", {}, "Invoice dates"), el("strong", {}, w)),
+    el("div", { class: "fact" }, el("span", {}, "Problem"), el("strong", {}, r.hazard || "")),
+  );
+  const s = r.summary;
+  const sum = $("#sum");
+  sum.replaceChildren(
+    el("b", {}, `${s.refunds} refunds worth ${s.refundTotal}`), `, ${s.pulled} lines pulled from unpaid invoices, ${s.drafts} drafts edited, ${s.refused} refused.`,
+  );
+  if (grid) {
+    grid.setGridOption("rowData", r.actions);
+    // Row ids stay the same after a run, so cell renderers must redraw to show the result.
+    grid.refreshCells({ force: true });
+  }
+  $("#confirm").hidden = ran;
+  $("#after").hidden = !ran;
+  $("#reviewed").checked = false;
+  $("#run").disabled = true;
+  const work = r.actions.filter((a) => a.notice);
+  $("#notices").hidden = !ran || !work.length;
+  $("#noticelist").replaceChildren(...work.map((a) => el("li", {}, el("div", { class: "to" }, el("span", {}, a.email), el("span", {}, `Order ${a.number}`)), el("p", {}, a.notice))));
+  renderLog(r.log);
+  if (focus) $("#title").focus({ preventScroll: false });
+}
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {});
+  let data = {};
+  try { data = await res.json(); } catch { data = { error: "The server sent an answer the page cannot read. Reload the page and try again." }; }
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function preview(body) {
+  showError("");
+  const btn = $("#preview");
+  btn.disabled = true;
+  btn.textContent = body.audioBase64 ? "Reading the voice note" : "Reading invoices";
+  $("#againres").hidden = true;
+  try {
+    const { ok, data } = await api("/api/recalls/preview", body);
+    if (data.transcript) {
+      $("#sentence").value = data.transcript;
+      const t = $("#transcript");
+      t.replaceChildren("Transcript of the voice note: ", el("b", {}, data.transcript));
+      t.hidden = false;
+    }
+    if (!ok) { showError(data.error); renderLog(data.log); return; }
+    render(data);
+  } catch {
+    showError("The server did not answer. Check that it runs on port 3004 and try again.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Show the dry run";
+  }
+}
+
+async function execute(again) {
+  if (!current) return;
+  const btn = again ? $("#again") : $("#run");
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = "Running";
+  try {
+    const { ok, data } = await api(`/api/recalls/${current.id}/execute`, { planHash: current.planHash, confirm: true });
+    if (!ok) {
+      if (data.actions) render(data, { focus: false });
+      showResError(data.error);
+      return;
+    }
+    render(data, { focus: !again });
+    if (again) {
+      const work = data.actions.filter((a) => a.result);
+      const repeat = work.filter((a) => a.result === "already done").length;
+      const p = $("#againres");
+      p.textContent = `Second run: ${repeat} of ${work.length} lines were already done. No new refund or edit was sent to PayPal.`;
+      p.hidden = false;
+    }
+  } catch {
+    showResError("The server did not answer. Open the server log, then run the recall again. Lines that ran are not sent twice.");
+  } finally {
+    btn.disabled = again ? false : !$("#reviewed").checked;
+    btn.textContent = old;
+  }
+}
+
+function showResError(msg) {
+  const p = $("#againres");
+  p.className = "err fade";
+  p.textContent = msg;
+  p.hidden = false;
+}
+
+$("#form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  preview({ sentence: $("#sentence").value });
+});
+$("#audio").addEventListener("change", () => {
+  const f = $("#audio").files[0];
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { showError("The voice note is larger than 8 MB. Record a shorter note."); return; }
+  const reader = new FileReader();
+  reader.onload = () => preview({ audioBase64: String(reader.result).split(",")[1] || "", audioType: f.type || "audio/wav" });
+  reader.onerror = () => showError("The browser could not read the file. Choose another audio file.");
+  reader.readAsDataURL(f);
+  $("#audio").value = "";
+});
+$("#reviewed").addEventListener("change", () => { $("#run").disabled = !$("#reviewed").checked; });
+$("#run").addEventListener("click", () => { $("#againres").className = "again fade"; execute(false); });
+$("#again").addEventListener("click", () => { $("#againres").className = "again fade"; execute(true); });
+
+addEventListener("DOMContentLoaded", async () => {
+  initGrid();
+  const { data } = await api("/api/config");
+  const m = $("#mode");
+  m.textContent = data.mode === "sandbox" ? "PayPal sandbox" : "MOCK: no PayPal keys, demo data in memory";
+  m.title = data.model ? `Model: ${data.model}` : "No AI model is set";
+  m.className = `mode ${data.mode}`;
+  if (data.mode === "mock") $("#honest").textContent = "MOCK mode. No PayPal call is made. Invoices live in server memory and reset on restart. Buyer notices are previews and are not emailed.";
+  $("#sentence").value = data.sample || "";
+});
+</script>
+</body>
+</html>
